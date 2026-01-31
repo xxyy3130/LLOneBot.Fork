@@ -88,7 +88,7 @@ export namespace OB11Entities {
     }
     if (msg.chatType === ChatType.Group) {
       resMsg.sub_type = 'normal'
-      resMsg.group_id = parseInt(msg.peerUin)
+      resMsg.group_id = +msg.peerUin
       resMsg.group_name = msg.peerName
       // 284840486: 合并转发内部
       if (msg.peerUin !== '284840486') {
@@ -423,7 +423,7 @@ export namespace OB11Entities {
                   data: {
                     title,
                     file_set_id: fileSetId,
-                    scene_type: parseInt(sceneType)
+                    scene_type: +sceneType
                   }
                 }
               }
@@ -564,7 +564,7 @@ export namespace OB11Entities {
         return new OB11GroupUploadNoticeEvent(+msg.peerUid, +msg.senderUin!, {
           id: element.fileElement.fileUuid!,
           name: element.fileElement.fileName,
-          size: parseInt(element.fileElement.fileSize),
+          size: +element.fileElement.fileSize,
           busid: element.fileElement.fileBizId || 0,
         })
       } else if (element.grayTipElement) {
@@ -583,7 +583,7 @@ export namespace OB11Entities {
             ctx.logger.info('收到群成员新头衔消息', json)
             const memberUin = json.items[1].param[0]
             const title = json.items[3].txt
-            return new OB11GroupTitleEvent(parseInt(msg.peerUid), parseInt(memberUin), title)
+            return new OB11GroupTitleEvent(+msg.peerUid, +memberUin, title)
           } else if (grayTipElement.jsonGrayTipElement?.busiId === JsonGrayTipBusId.GroupNewMemberInvited) {
             ctx.logger.info('收到新人被邀请进群消息', grayTipElement)
             const userId = new URL(json.items[2].jp).searchParams.get('robot_uin')
@@ -646,20 +646,20 @@ export namespace OB11Entities {
         uin = await ctx.ntUserApi.getUinByUid(revokeElement.origMsgSenderUid)
       }
       return new OB11GroupRecallNoticeEvent(
-        parseInt(msg.peerUid),
-        parseInt(uin),
-        parseInt(operator.uin || msg.senderUin),
+        Number(msg.peerUid),
+        Number(uin),
+        Number(operator.uin || msg.senderUin),
         shortId,
       )
     }
     else {
-      return new OB11FriendRecallNoticeEvent(parseInt(msg.senderUin), shortId)
+      return new OB11FriendRecallNoticeEvent(+msg.senderUin, shortId)
     }
   }
 
   export function friend(raw: SimpleInfo): OB11User {
     return {
-      user_id: parseInt(raw.coreInfo.uin),
+      user_id: +raw.coreInfo.uin,
       nickname: raw.coreInfo.nick,
       remark: raw.coreInfo.remark || raw.coreInfo.nick,
       sex: sex(raw.baseInfo.sex),
@@ -697,7 +697,7 @@ export namespace OB11Entities {
   export function groupMember(groupId: number, member: GroupMember): OB11GroupMember {
     return {
       group_id: groupId,
-      user_id: parseInt(member.uin),
+      user_id: +member.uin,
       nickname: member.nick,
       card: member.cardName,
       card_or_nickname: member.cardName || member.nick,
@@ -720,7 +720,7 @@ export namespace OB11Entities {
 
   export function group(group: GroupSimpleInfo): OB11Group {
     return {
-      group_id: parseInt(group.groupCode),
+      group_id: +group.groupCode,
       group_name: group.groupName,
       group_memo: '',
       group_create_time: +group.createTime,
