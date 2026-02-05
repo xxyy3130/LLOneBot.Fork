@@ -27,6 +27,7 @@ export interface GroupSimpleInfo {
     memberUid: string
   }
   createTime: string
+  cmdUinMsgMask: number
 }
 
 export enum GroupMemberRole {

@@ -24,6 +24,9 @@ interface ScrollPosition {
 
 type TabType = 'friends' | 'groups' | 'recent'
 
+// 群助手视图模式
+type GroupAssistantMode = 'normal' | 'assistant'
+
 // 已访问的聊天（不持久化，每次进入页面重置）
 let visitedChats = new Set<string>()
 
@@ -77,6 +80,9 @@ interface WebQQState {
   // 当前 Tab
   activeTab: TabType
   
+  // 群助手模式
+  groupAssistantMode: GroupAssistantMode
+  
   // 未读计数
   unreadCounts: Record<string, number>
   
@@ -103,6 +109,11 @@ interface WebQQState {
   setContactsError: (error: string | null) => void
   setCurrentChat: (chat: ChatSession | null) => void
   setActiveTab: (tab: TabType) => void
+  
+  // 群助手模式操作
+  setGroupAssistantMode: (mode: GroupAssistantMode) => void
+  enterGroupAssistant: () => void
+  exitGroupAssistant: () => void
   
   // 未读计数操作
   setUnreadCount: (chatKey: string, count: number) => void
@@ -158,6 +169,7 @@ export const useWebQQStore = create<WebQQState>()(
       contactsError: null,
       currentChat: null,
       activeTab: 'recent',
+      groupAssistantMode: 'normal',
       unreadCounts: {},
       expandedCategories: [],
       membersCache: {},
@@ -173,6 +185,11 @@ export const useWebQQStore = create<WebQQState>()(
       setContactsError: (error) => set({ contactsError: error }),
       setCurrentChat: (chat) => set({ currentChat: chat }),
       setActiveTab: (tab) => set({ activeTab: tab }),
+
+      // 群助手模式操作
+      setGroupAssistantMode: (mode) => set({ groupAssistantMode: mode }),
+      enterGroupAssistant: () => set({ groupAssistantMode: 'assistant' }),
+      exitGroupAssistant: () => set({ groupAssistantMode: 'normal' }),
 
       // 未读计数操作
       setUnreadCount: (chatKey, count) => set((state) => ({
@@ -524,6 +541,10 @@ export const useWebQQStore = create<WebQQState>()(
             // 从群组列表查找
             const group = state.groups.find(g => g.groupCode === peerId)
             if (group) {
+              // 如果是群助手的群（msgMask === 2），不添加到最近联系列表
+              if (group.msgMask === 2) {
+                return {}
+              }
               name = group.groupName
               avatar = group.avatar
             }

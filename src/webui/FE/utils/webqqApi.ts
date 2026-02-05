@@ -101,7 +101,8 @@ export async function getGroups(): Promise<GroupItem[]> {
     remarkName: group.remarkName || '',
     avatar: getGroupAvatar(group.groupCode),
     memberCount: group.memberCount,
-    isTop: group.isTop || false
+    isTop: group.isTop || false,
+    msgMask: group.cmdUinMsgMask || 1
   }))
 }
 
@@ -118,9 +119,13 @@ export async function getRecentChats(): Promise<RecentChatItem[]> {
   // 创建置顶信息映射
   const topMap = new Map<string, boolean>()
   
-  // 群聊置顶信息
+  // 群聊置顶信息（排除 msgMask === 2 的群）
   const toppedGroups: any[] = []
   groupsData.forEach(group => {
+    // 群助手的群（msgMask === 2）不应该出现在最近联系列表
+    if (group.msgMask === 2) {
+      return
+    }
     topMap.set(`2_${group.groupCode}`, group.isTop)
     if (group.isTop) {
       toppedGroups.push(group)
@@ -170,8 +175,18 @@ export async function getRecentChats(): Promise<RecentChatItem[]> {
         pinned
       }
     })
+    .filter(item => {
+      // 过滤掉群助手的群（msgMask === 2）
+      if (item.chatType === 2) {
+        const group = groupsData.find(g => g.groupCode === item.peerId)
+        if (group && group.msgMask === 2) {
+          return false
+        }
+      }
+      return true
+    })
   
-  // 添加置顶但不在最近联系列表中的群聊
+  // 添加置顶但不在最近联系列表中的群聊（排除群助手的群）
   toppedGroups.forEach(group => {
     const chatId = `2_${group.groupCode}`
     if (!existingChatIds.has(chatId)) {

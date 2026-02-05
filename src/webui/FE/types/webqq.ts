@@ -66,6 +66,7 @@ export interface GroupItem {
   avatar: string
   memberCount: number
   isTop?: boolean
+  msgMask?: number
 }
 
 // 最近会话项

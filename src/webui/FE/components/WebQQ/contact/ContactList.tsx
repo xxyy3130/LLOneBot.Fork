@@ -80,6 +80,7 @@ const ContactList: React.FC<ContactListProps> = ({
   onSelectRecent
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
+  const { groupAssistantMode, enterGroupAssistant, exitGroupAssistant } = useWebQQStore()
 
   // 过滤后的好友分组
   const filteredCategories = useMemo(() => {
@@ -145,12 +146,22 @@ const ContactList: React.FC<ContactListProps> = ({
 
       {/* 列表内容 */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'recent' && (
+        {activeTab === 'recent' && groupAssistantMode === 'normal' && (
           <RecentList
             items={recentChats}
             unreadCounts={unreadCounts}
             selectedPeerId={selectedPeerId}
             onSelect={onSelectRecent}
+            onEnterGroupAssistant={enterGroupAssistant}
+          />
+        )}
+        {activeTab === 'recent' && groupAssistantMode === 'assistant' && (
+          <GroupAssistantList
+            groups={groups}
+            recentChats={recentChats}
+            selectedPeerId={selectedPeerId}
+            onSelect={onSelectGroup}
+            onBack={exitGroupAssistant}
           />
         )}
         {activeTab === 'friends' && (
@@ -380,9 +391,10 @@ interface GroupListItemProps {
   group: GroupItem
   isSelected: boolean
   onClick: () => void
+  showPinnedStyle?: boolean
 }
 
-export const GroupListItem: React.FC<GroupListItemProps> = ({ group, isSelected, onClick }) => {
+export const GroupListItem: React.FC<GroupListItemProps> = ({ group, isSelected, onClick, showPinnedStyle = false }) => {
   const { togglePinChat } = useWebQQStore()
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -419,7 +431,11 @@ export const GroupListItem: React.FC<GroupListItemProps> = ({ group, isSelected,
         onClick={onClick}
         onContextMenu={handleContextMenu}
         className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
-          isSelected ? 'bg-pink-500/20' : 'hover:bg-theme-item-hover'
+          isSelected 
+            ? 'bg-pink-500/20' 
+            : showPinnedStyle && group.isTop 
+              ? 'bg-theme-item-hover' 
+              : 'hover:bg-theme-item-hover'
         }`}
       >
         <img
@@ -469,13 +485,30 @@ interface RecentListProps {
   unreadCounts: Map<string, number>
   selectedPeerId?: string
   onSelect: (recent: RecentChatItem) => void
+  onEnterGroupAssistant: () => void
 }
 
-const RecentList: React.FC<RecentListProps> = ({ items, unreadCounts, selectedPeerId, onSelect }) => {
+const RecentList: React.FC<RecentListProps> = ({ items, unreadCounts, selectedPeerId, onSelect, onEnterGroupAssistant }) => {
   const { togglePinChat, removeRecentChat, friendCategories, groups } = useWebQQStore()
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; item: RecentChatItem } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuPosition = useMenuPosition(contextMenu?.x || 0, contextMenu?.y || 0, menuRef)
+
+  // 计算群助手未读数（msgMask === 2 的群的未读消息总数）
+  const groupAssistantUnread = useMemo(() => {
+    const assistantGroups = groups.filter(g => g.msgMask === 2)
+    let totalUnread = 0
+    assistantGroups.forEach(group => {
+      const unread = unreadCounts.get(`2_${group.groupCode}`) || 0
+      totalUnread += unread
+    })
+    return totalUnread
+  }, [groups, unreadCounts])
+  
+  // 计算群助手群数量
+  const groupAssistantCount = useMemo(() => {
+    return groups.filter(g => g.msgMask === 2).length
+  }, [groups])
 
   // 获取显示名称（优先显示备注）
   const getDisplayName = (item: RecentChatItem): string => {
@@ -533,6 +566,33 @@ const RecentList: React.FC<RecentListProps> = ({ items, unreadCounts, selectedPe
 
   return (
     <div className="py-1" onClick={closeContextMenu}>
+      {/* 群助手入口 */}
+      {groupAssistantCount > 0 && (
+        <div
+          onClick={onEnterGroupAssistant}
+          className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-theme-item-hover"
+        >
+          <div className="relative flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+              <MessageCircle size={20} className="text-white" />
+            </div>
+            {groupAssistantUnread > 0 && (
+              <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center px-1">
+                {groupAssistantUnread}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-theme">群助手</span>
+            </div>
+            <div className="text-xs text-theme-hint truncate mt-0.5">
+              {groupAssistantCount} 个群聊
+            </div>
+          </div>
+        </div>
+      )}
+      
       {items.map(item => (
         <RecentListItem
           key={`${item.chatType}_${item.peerId}`}
@@ -625,6 +685,62 @@ export const RecentListItem: React.FC<RecentListItemProps> = ({ item, displayNam
         </div>
         <div className="text-xs text-theme-hint truncate mt-0.5">{item.lastMessage}</div>
       </div>
+    </div>
+  )
+}
+
+// 群助手列表
+interface GroupAssistantListProps {
+  groups: GroupItem[]
+  recentChats: RecentChatItem[]
+  selectedPeerId?: string
+  onSelect: (group: GroupItem) => void
+  onBack: () => void
+}
+
+const GroupAssistantList: React.FC<GroupAssistantListProps> = ({ groups, recentChats, selectedPeerId, onSelect, onBack }) => {
+  // 过滤出 msgMask === 2 的群（收进群助手不提醒），并按置顶状态排序
+  const assistantGroups = useMemo(() => {
+    const filtered = groups.filter(g => g.msgMask === 2)
+    return filtered.sort((a, b) => {
+      if (a.isTop && !b.isTop) return -1
+      if (!a.isTop && b.isTop) return 1
+      return 0
+    })
+  }, [groups])
+
+  return (
+    <div className="py-1">
+      {/* 返回按钮 */}
+      <div
+        onClick={onBack}
+        className="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-theme-item-hover border-b border-theme-divider"
+      >
+        <ChevronRight size={16} className="transform rotate-180 text-theme-secondary" />
+        <span className="text-sm font-medium text-theme">返回最近会话</span>
+      </div>
+
+      {/* 群助手标题 */}
+      <div className="px-3 py-2 text-xs text-theme-hint">
+        群助手 ({assistantGroups.length})
+      </div>
+
+      {/* 群列表 */}
+      {assistantGroups.length === 0 ? (
+        <div className="flex items-center justify-center h-32 text-theme-hint text-sm">
+          暂无群聊
+        </div>
+      ) : (
+        assistantGroups.map(group => (
+          <GroupListItem
+            key={group.groupCode}
+            group={group}
+            isSelected={selectedPeerId === group.groupCode}
+            onClick={() => onSelect(group)}
+            showPinnedStyle={true}
+          />
+        ))
+      )}
     </div>
   )
 }
