@@ -1,32 +1,51 @@
 export interface GroupSimpleInfo {
   groupCode: string
+  groupUin: string
+  groupOwnerId: {
+    memberUin: string
+    memberUid: string
+    memberQid: string
+  }
+  createTime: string
   maxMember: number
   memberCount: number
   groupName: string
   groupStatus: GroupStatus
-  memberRole: 2
   isTop: boolean
-  toppedTimestamp: '0'
-  privilegeFlag: number //65760
-  isConf: boolean
-  hasModifyConfGroupFace: boolean
-  hasModifyConfGroupName: boolean
-  remarkName: string
-  hasMemo: boolean
+  toppedTimestamp: string
   groupShutupExpireTime: string
-  personShutupExpireTime: string
   discussToGroupUin: string
   discussToGroupMaxMsgSeq: number
   discussToGroupTime: number
-  groupFlagExt: number //1073938496,
-  authGroupType: number //0,
-  groupCreditLevel: number //0,
-  groupFlagExt3: number //0,
-  groupOwnerId: {
-    memberUin: string
-    memberUid: string
-  }
-  createTime: string
+  groupFlagExt: number
+  groupClassExt: number
+  authGroupType: number
+  groupTypeFlag: number
+  privilegeFlag: number
+  groupCreditLevel: number
+  groupFlagExt3: number
+  isConf: boolean
+  hasModifyConfGroupFace: boolean
+  hasModifyConfGroupName: boolean
+  groupFlagExt4: number
+  groupMemo: Record<string, number>
+  hasMemo: boolean
+  groupSecLevelInfo: number
+  appealDeadline: number
+  subscriptionUin: string
+  hlGuildAppId: number
+  hlGuildSubType: number
+  memberChangeSeq: number
+  groupInfoChangeSeq: number
+  memberCardChangeSeq: number
+  memberLevelNameSeq: number
+  joinTime: number
+  memberRole: GroupMemberRole
+  remarkName: string
+  personShutupExpireTime: string
+  cmdUinFlag: number
+  cmdUinFlagEx2: number
+  cmdUinRingtoneId: number
   cmdUinMsgMask: number
 }
 
