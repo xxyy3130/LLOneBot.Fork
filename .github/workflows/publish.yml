@@ -118,7 +118,8 @@ jobs:
           cd llbot-cli-macos-arm64
           mkdir -p bin/llbot
           mkdir -p bin/pmhq
-          cp ../doc/使用说明-macos-cli.txt ./使用说明.txt
+          cp ../doc/使用说明-linux-cli.txt ./使用说明.txt
+          cp ../script/start-mac.sh ./start.sh
           cp ../dist/更新日志.txt ./
           cp -r ../dist/* ./bin/llbot/
           wget https://github.com/linyuchen/PMHQ/releases/latest/download/pmhq-macos-arm64.zip
@@ -131,7 +132,7 @@ jobs:
           wget https://github.com/LLOneBot/exe/releases/download/0.0.0/QQ-macos-6.9.88-44725.zip
           unzip QQ-macos-6.9.88-44725.zip -d bin/qq
           rm QQ-macos-6.9.88-44725.zip
-          zip -r ../LLBot-CLI-macos-arm64.zip ./*
+          zip -r -9 ../LLBot-CLI-macos-arm64.zip ./*
 
       - name: Compress for Docker
         run: |
