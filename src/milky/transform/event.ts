@@ -427,13 +427,19 @@ export async function transformSystemMessageEvent(
         } satisfies MilkyEventTypes['group_admin_change']
       }
     } else if (msgType === 528 && subType === 39) {
-      /**
       const tip = Notify.FriendDeleteOrPinChange.decode(sysMsg.body.msgContent)
       if (tip.body.type !== 7) return null
       const messageScene = tip.body.pinChanged?.body.groupCode ? 'group' : 'friend'
-      const peerId = messageScene === 'group' ? tip.body.pinChanged!.body.groupCode : Number(await ctx.ntUserApi.getUinByUid(tip.body.pinChanged!.body.uid))
+      const peerId = messageScene === 'group' ? tip.body.pinChanged!.body.groupCode! : Number(await ctx.ntUserApi.getUinByUid(tip.body.pinChanged!.body.uid))
       const isPinned = tip.body.pinChanged?.body.info.timestamp.length !== 0
-      */
+      return {
+        eventType: 'peer_pin_change',
+        data: {
+          message_scene: messageScene,
+          peer_id: peerId,
+          is_pinned: isPinned
+        } satisfies MilkyEventTypes['peer_pin_change']
+      }
     }
     return null
   } catch (error) {
