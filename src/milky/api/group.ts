@@ -353,7 +353,11 @@ const SendGroupMessageReaction = defineApi(
       peer,
       payload.message_seq.toString(),
       payload.reaction,
-      payload.is_add
+      payload.is_add,
+      {
+        face: '1',
+        emoji: '2'
+      }[payload.reaction_type]
     )
     if (result.result !== 0) {
       return Failed(-500, result.errMsg)
