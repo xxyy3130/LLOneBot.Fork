@@ -13,6 +13,8 @@ interface Ball {
   offscreenCanvas?: HTMLCanvasElement;
 }
 
+const MAX_SPEED = 1.2;
+
 const AnimatedBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ballsRef = useRef<Ball[]>([]);
@@ -100,9 +102,26 @@ const AnimatedBackground: React.FC = () => {
 
       for (let i = 0; i < numBalls; i++) {
         const baseRadius = Math.random() * 80 + 60;
+        let x = Math.random() * canvas.width;
+        let y = Math.random() * canvas.height;
+
+        let attempts = 0;
+        while (attempts < 30) {
+          const hasOverlap = balls.some(existing => {
+            const dx = x - existing.x;
+            const dy = y - existing.y;
+            const minDistance = baseRadius + existing.baseRadius;
+            return dx * dx + dy * dy < minDistance * minDistance;
+          });
+          if (!hasOverlap) break;
+          x = Math.random() * canvas.width;
+          y = Math.random() * canvas.height;
+          attempts++;
+        }
+
         const ball: Ball = {
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
+          x,
+          y,
           vx: (Math.random() - 0.5) * 0.8,
           vy: (Math.random() - 0.5) * 0.8,
           radius: baseRadius,
@@ -118,31 +137,45 @@ const AnimatedBackground: React.FC = () => {
     };
 
     const checkCollision = (ball1: Ball, ball2: Ball) => {
-      const dx = ball2.x - ball1.x;
-      const dy = ball2.y - ball1.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      let dx = ball2.x - ball1.x;
+      let dy = ball2.y - ball1.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      const minDistance = ball1.radius + ball2.radius;
 
-      if (distance < ball1.radius + ball2.radius) {
-        const angle = Math.atan2(dy, dx);
-        const sin = Math.sin(angle);
-        const cos = Math.cos(angle);
+      if (distance >= minDistance) return;
 
-        const vx1 = ball1.vx * cos + ball1.vy * sin;
-        const vy1 = ball1.vy * cos - ball1.vx * sin;
-        const vx2 = ball2.vx * cos + ball2.vy * sin;
-        const vy2 = ball2.vy * cos - ball2.vx * sin;
-
-        ball1.vx = vx2 * cos - vy1 * sin;
-        ball1.vy = vy1 * cos + vx2 * sin;
-        ball2.vx = vx1 * cos - vy2 * sin;
-        ball2.vy = vy2 * cos + vx1 * sin;
-
-        const overlap = (ball1.radius + ball2.radius - distance) / 2;
-        ball1.x -= overlap * cos;
-        ball1.y -= overlap * sin;
-        ball2.x += overlap * cos;
-        ball2.y += overlap * sin;
+      if (distance < 0.0001) {
+        const angle = Math.random() * Math.PI * 2;
+        dx = Math.cos(angle) * 0.0001;
+        dy = Math.sin(angle) * 0.0001;
+        distance = 0.0001;
       }
+
+      const nx = dx / distance;
+      const ny = dy / distance;
+
+      const overlap = minDistance - distance;
+      const correction = overlap * 0.5;
+      ball1.x -= nx * correction;
+      ball1.y -= ny * correction;
+      ball2.x += nx * correction;
+      ball2.y += ny * correction;
+
+      const rvx = ball2.vx - ball1.vx;
+      const rvy = ball2.vy - ball1.vy;
+      const velocityAlongNormal = rvx * nx + rvy * ny;
+
+      if (velocityAlongNormal > 0) return;
+
+      const restitution = 0.9;
+      const impulse = -(1 + restitution) * velocityAlongNormal / 2;
+      const impulseX = impulse * nx;
+      const impulseY = impulse * ny;
+
+      ball1.vx -= impulseX;
+      ball1.vy -= impulseY;
+      ball2.vx += impulseX;
+      ball2.vy += impulseY;
     };
 
     const animate = (currentTime: number) => {
@@ -157,6 +190,13 @@ const AnimatedBackground: React.FC = () => {
       ballsRef.current.forEach((ball, i) => {
         ball.x += ball.vx;
         ball.y += ball.vy;
+
+        const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+        if (speed > MAX_SPEED) {
+          const scale = MAX_SPEED / speed;
+          ball.vx *= scale;
+          ball.vy *= scale;
+        }
         
         ball.scale += ball.scaleSpeed;
         if (ball.scale > 1.2 || ball.scale < 0.8) {
