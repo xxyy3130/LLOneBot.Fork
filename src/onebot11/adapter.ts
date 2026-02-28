@@ -551,7 +551,7 @@ class OneBot11Adapter extends Service {
           if (msgType === 732 && subType === 16) {
             const notify = Msg.NotifyMessageBody.decode(pushMsg.message.body.msgContent.subarray(7))
             if (notify.field13 === 35) {
-              this.ctx.logger.info('群表情回应', notify.reaction.data.body)
+              this.ctx.logger.info('群表情回应', notify.groupCode, notify.reaction.data.body)
               const info = notify.reaction.data.body.info
               const target = notify.reaction.data.body.target
               const userId = Number(await this.ctx.ntUserApi.getUinByUid(info.operatorUid))
