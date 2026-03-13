@@ -127,7 +127,8 @@ class Core extends Service {
   private async handleMessage(msgList: RawMessage[]) {
     for (const message of msgList) {
       const msgTime = +message.msgTime
-      if (msgTime < this.startupTime || ('isOnlineMsg' in message && !message.isOnlineMsg)) {
+      const isGrayTip = message.elements.some(e => e.grayTipElement)
+      if (msgTime < this.startupTime || ('isOnlineMsg' in message && !message.isOnlineMsg && !isGrayTip)) {
         const existing = await this.ctx.store.checkMsgExist(message)
         if (!existing) {
           this.ctx.parallel('nt/offline-message-created', message)
