@@ -1,9 +1,10 @@
 import * as NT from '@/ntqqapi/types'
 import { omit } from 'cosmokit'
-import { Event } from '@satorijs/protocol'
+import { Event, Status } from '@satorijs/protocol'
 import { Service, Context } from 'cordis'
 import { SatoriConfig } from '@/common/types'
 import { SatoriServer } from './server'
+import { decodeUser } from './utils'
 import { selfInfo } from '@/common/globalVars'
 import { ObjectToSnake } from 'ts-case-convert'
 import { isDeepStrictEqual } from 'node:util'
@@ -223,6 +224,14 @@ class SatoriAdapter extends Service {
       self_id: this.selfId,
       platform: 'llonebot',
       timestamp: Date.now(),
+      login: {
+        sn: this._loginSeq,
+        user: decodeUser(selfInfo),
+        adapter: 'llonebot',
+        platform: 'llonebot',
+        status: selfInfo.online ? Status.ONLINE : Status.OFFLINE,
+        features: [],
+      },
       ...data,
     }
   }
