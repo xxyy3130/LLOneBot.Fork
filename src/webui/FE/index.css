@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
+/* Tailwind v4: 使用 .dark 类切换暗黑模式（而非 media query） */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @utility shadow-card {
-  @apply shadow-lg rounded-xl bg-white;
+  @apply shadow-lg rounded-xl;
 }
 
 @utility shadow-card-hover {
