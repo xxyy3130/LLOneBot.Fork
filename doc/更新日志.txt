@@ -1,5 +1,5 @@
 V7.11.0
-更新时间 2026-03-
+更新时间 2026-03-15
 
 * OneBot 新增重新分享闪传文件接口 `reshare_flash_file`
 * Satori Event 添加 login 字段
