@@ -66,7 +66,7 @@ export default class Log {
       record: (record: Logger.Record) => {
         const dateTime = new Date(record.timestamp)
         const dateTimeStr = `${dateTime.getFullYear()}-${(dateTime.getMonth() + 1).toString().padStart(2, '0')}-${dateTime.getDate().toString().padStart(2, '0')} ${dateTime.getHours().toString().padStart(2, '0')}:${dateTime.getMinutes().toString().padStart(2, '0')}:${dateTime.getSeconds().toString().padStart(2, '0')}`
-        let content = `${dateTimeStr} | ${record.content}\n\n`
+        let content = `${dateTimeStr} | ${record.content}\n`
         console.log(content)
 
         const logRecord: LogRecord = {
@@ -88,7 +88,7 @@ export default class Log {
         if (!enable) {
           return
         }
-        content = `[${record.type}] | ${content}`
+        content = `[${record.type}] | ${content}\n`
 
         // 检查是否需要切片
         if (currentSize >= MAX_FILE_SIZE || currentEntries >= MAX_ENTRIES) {
