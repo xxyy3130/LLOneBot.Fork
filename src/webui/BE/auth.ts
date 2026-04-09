@@ -49,7 +49,7 @@ export async function authMiddleware(c: Context, next: Next) {
 
   const token = webuiTokenUtil.getToken()
   if (!token) {
-    if (c.req.path === '/set-token') return await next()
+    if (c.req.path === '/api/set-token') return await next()
     logAccess(clientIp, c.req.method, c.req.path, 401, '未设置密码')
     return c.json({ success: false, message: '请先设置WebUI密码' }, 401)
   }
