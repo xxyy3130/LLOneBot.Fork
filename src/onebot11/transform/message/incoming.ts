@@ -60,7 +60,7 @@ export async function transformIncomingSegments(
       try {
         const { replayMsgSeq, replyMsgTime, sourceMsgIdInRecords, senderUidStr } = replyElement
         const record = message.records.find(msgRecord => msgRecord.msgId === sourceMsgIdInRecords)
-        const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUidStr])
+        const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, senderUidStr ? [senderUidStr] : [])
 
         let replyMsg: RawMessage | undefined
         if (record && record.msgRandom !== '0') {

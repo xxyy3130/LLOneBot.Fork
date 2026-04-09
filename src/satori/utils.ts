@@ -84,7 +84,7 @@ async function decodeElement(ctx: Context, data: NT.RawMessage, quoted = false) 
       try {
         const { replayMsgSeq, replyMsgTime, sourceMsgIdInRecords, senderUidStr } = v.replyElement
         const record = data.records.find(msgRecord => msgRecord.msgId === sourceMsgIdInRecords)
-        const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, [senderUidStr])
+        const { msgList } = await ctx.ntMsgApi.queryMsgsWithFilterExBySeq(peer, replayMsgSeq, replyMsgTime, senderUidStr ? [senderUidStr] : [])
         let replyMsg: NT.RawMessage | undefined
         if (record && record.msgRandom !== '0') {
           replyMsg = msgList.find(msg => msg.msgRandom === record.msgRandom)
