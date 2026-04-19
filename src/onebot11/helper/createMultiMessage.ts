@@ -47,7 +47,7 @@ export class MessageEncoder {
   async flush() {
     if (this.children.length === 0 && !this.content) return
 
-    const nick = this.name || selfInfo.nick || 'QQ用户'
+    const nick = this.name ?? selfInfo.nick
 
     if (this.news.length < 4) {
       this.news.push({
