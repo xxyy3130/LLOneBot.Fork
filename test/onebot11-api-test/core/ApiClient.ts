@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import WebSocket from 'ws';
 import { AccountConfig } from '../config/ConfigLoader.js';
-import { ActionName } from '../types/onebot11';
+import { ActionName } from '../../../src/onebot11/action/types.js';
 
 /**
  * API 响应接口

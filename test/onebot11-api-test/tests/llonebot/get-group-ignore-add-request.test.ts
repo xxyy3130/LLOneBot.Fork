@@ -5,7 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { ActionName } from '@/types/onebot11';
+import { ActionName } from '@llbot/onebot11/action/types';
 
 describe('get_group_ignore_add_request - 获取群忽略的加群请求', () => {
   let context: MessageTestContext;

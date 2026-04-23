@@ -5,7 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { ActionName } from '@/types/onebot11';
+import { ActionName } from '@llbot/onebot11/action/types';
 
 describe('get_friend_with_category - 获取分组好友列表', () => {
   let context: MessageTestContext;

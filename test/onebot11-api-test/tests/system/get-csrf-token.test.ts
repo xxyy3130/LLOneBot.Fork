@@ -5,7 +5,7 @@
 
 import { setupMessageTest, teardownMessageTest, MessageTestContext } from '../setup';
 import { Assertions } from '@/utils/Assertions';
-import { ActionName } from '@/types/onebot11';
+import { ActionName } from '@llbot/onebot11/action/types';
 
 describe('get_csrf_token - 获取 CSRF Token', () => {
   let context: MessageTestContext;
