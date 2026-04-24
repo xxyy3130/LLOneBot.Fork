@@ -354,20 +354,24 @@ export class NTQQGroupApi extends Service {
     ])
   }
 
-  async getGroupShutUpMemberList(groupCode: string) {
-    const res = await this.ctx.pmhq.invoke<[
-      groupCode: string,
-      memList: GroupMember[]
-    ]>(
-      'nodeIKernelGroupService/getGroupShutUpMemberList',
-      [groupCode],
-      {
-        resultCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
-        resultCb: payload => payload[0] === groupCode,
-        timeout: 5000,
-      },
-    ).catch(() => [groupCode, []] as [string, GroupMember[]])
-    return res[1]
+  async getGroupShutUpMemberList(groupCode: string): Promise<GroupMember[]> {
+    try {
+      const res = await this.ctx.pmhq.invoke<[
+        groupCode: string,
+        memList: GroupMember[]
+      ]>(
+        'nodeIKernelGroupService/getGroupShutUpMemberList',
+        [groupCode],
+        {
+          resultCmd: 'nodeIKernelGroupListener/onShutUpMemberListChanged',
+          resultCb: payload => payload[0] === groupCode,
+          timeout: 5000,
+        },
+      )
+      return res[1]
+    } catch {
+      return []
+    }
   }
 
   async renameGroupFolder(groupId: string, folderId: string, newFolderName: string) {
